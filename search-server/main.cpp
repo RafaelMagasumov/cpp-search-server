@@ -395,10 +395,11 @@ void TestRelevance() { // тест на подсчет релевантност�
 	server.AddDocument(id_document_second, content_second, DocumentStatus::ACTUAL, rating_second);
 	server.AddDocument(id_document_third, content_third, DocumentStatus::ACTUAL, rating_third);
 	const auto document_ = server.FindTopDocuments("бежит"s);
-	double relevance_log = log(3 / 1);
-	double relevance = relevance_log * 1.0 / document_.size();// релевантность для id 0
+	double IDF = log(3 / document_.size());
+	double TF = 1 * 1.0 / 3;
+	double relevance = IDF * TF;
 	const Document& doc_first = document_[0];
-	ASSERT(doc_first.relevance - relevance < MAX_DIFFERENCE_RELEVANCE);
+	ASSERT(abs(doc_first.relevance - relevance) < MAX_DIFFERENCE_RELEVANCE);
 }
 
 void TestRelevanceTop() { //  тест на вывод релеваотности по убыванию
@@ -415,10 +416,15 @@ void TestRelevanceTop() { //  тест на вывод релеваотност�
 	server.AddDocument(id_document_first, content_first, DocumentStatus::ACTUAL, rating_first);
 	server.AddDocument(id_document_second, content_second, DocumentStatus::ACTUAL, rating_second);
 	server.AddDocument(id_document_third, content_third, DocumentStatus::ACTUAL, rating_third);
-	const auto document_ = server.FindTopDocuments("бежит домой"s);
+	server.AddDocument(4, "муха кошка и собака бегут домой", DocumentStatus::ACTUAL, { 10,4 });
+	const auto document_ = server.FindTopDocuments("кошка бежит домой"s);
 	const Document &  doc_first = document_[0];
 	const Document& doc_second = document_[1];
+	const Document& doc_third = document_[2];
+	const Document& doc_ford = document_[3];
 	ASSERT_HINT(doc_first.relevance > doc_second.relevance, "error in sort relevance"s);
+	ASSERT_HINT(doc_second.relevance > doc_third.relevance, "error int sort relevance"s);
+	ASSERT_HINT(doc_third.relevance > doc_ford.relevance, "error in sort relevance"s);
 }
 
 
@@ -444,11 +450,15 @@ void TestSearchStatus() { // поиск документов имеющих за
 	const auto document_second = server.FindTopDocuments("бежит"s, DocumentStatus::BANNED);
 	const auto document_third = server.FindTopDocuments("кошка"s, DocumentStatus::IRRELEVANT);
 	const auto document_forth = server.FindTopDocuments("кошка"s, DocumentStatus::REMOVED);
-	//const Document& doc_first = document_[0];
-	ASSERT_EQUAL(document_.size(), 1);
+	ASSERT_EQUAL(document_.size(), 1); // соовтетвие по статусу
 	ASSERT_EQUAL(document_second.size(), 1);
 	ASSERT_EQUAL(document_third.size(), 1);
 	ASSERT_EQUAL(document_forth.size(), 1);
+
+	ASSERT_EQUAL(document_[0].id, 0);  // соответсвие документво по айди показывает что нашелся именно тот документ
+	ASSERT_EQUAL(document_second[0].id, 1);
+	ASSERT_EQUAL(document_third[0].id, 2);
+	ASSERT_EQUAL(document_forth[0].id, 3);
 }
 
 void FilterResultPlusPredicat() { // фильтр резултатов поиска с использованием предиката задаваемого пользователем
@@ -477,6 +487,23 @@ void FilterResultPlusPredicat() { // фильтр резултатов поис�
 	ASSERT_EQUAL(document_second_test.size(), 4);
 }
 
+void TestMatchDocument() {
+	SearchServer server;
+	const int id_document_first = 0;
+	const int id_document_second = 1;
+	server.AddDocument(id_document_first, "кошка собака попугай"s, DocumentStatus::ACTUAL, { 1 ,3,5 });
+	server.AddDocument(id_document_second, "пес черепаха осел "s, DocumentStatus::ACTUAL, { 10, 5, 3 });
+	const auto doc_first = server.MatchDocument("-кошка собака попугай"s, id_document_first);
+	const auto doc_second = server.MatchDocument("пес черепаха -кошка"s, id_document_second);
+
+	const auto[words, status] = doc_second; // проверка что только соответсвующие слова 
+	const vector<string> word_second = { "пес"s, "черепаха" };
+	ASSERT_EQUAL(words[0], word_second[0]); // пес
+	ASSERT_EQUAL(words[1], word_second[1]);  // черепаха
+
+	ASSERT(get<vector<string>>(doc_first).empty()); // проверка где минус слово там пусто! 
+}
+
 
 
 template <typename T>
@@ -498,7 +525,7 @@ void TestSearchServer() {
 	RUN_TEST(TestRelevanceTop);
 	RUN_TEST(TestSearchStatus);
 	RUN_TEST(FilterResultPlusPredicat);
-	// Не забудьте вызывать остальные тесты здесь
+	RUN_TEST(TestMatchDocument);
 }
 // ==================== для примера =========================
 
