@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 
+
 using namespace std;
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
@@ -25,6 +26,7 @@ int ReadLineWithNumber() {
 }
 
 vector<string> SplitIntoWords(const string& text) {
+
 	vector<string> words;
 	string word;
 	for (const char c : text) {
@@ -92,14 +94,11 @@ public:
 		: SearchServer(
 			SplitIntoWords(stop_words_text))  // Invoke delegating constructor from string container
 	{
-		if (!IsValidWord(stop_words_text)) throw invalid_argument("special symbols in stop words"s);
 	}
 
 	void AddDocument(int document_id, const string& document, DocumentStatus status,
 		const vector<int>& ratings) {
 		if (document_id < 0)  throw invalid_argument("id < 0"s);
-
-		if (!IsValidWord(document)) throw invalid_argument("special symbols in document"s);
 
 		if (documents_.count(document_id)) return throw invalid_argument("existing id"s);
 
@@ -153,8 +152,6 @@ public:
 	tuple<vector<string>, DocumentStatus> MatchDocument(const string& raw_query,
 		int document_id) const {
 
-		if (!IsValidWord(raw_query)) throw invalid_argument("special symbol in raw_query"s);
-
 		Query query;
 
 		if (!ParseQuery(raw_query, query)) throw invalid_argument("accordance in raw_query"s);
@@ -178,7 +175,7 @@ public:
 			}
 		}
 		tuple<vector<string>, DocumentStatus> rots_{ matched_words, documents_.at(document_id).status };
-		// optional<tuple<vector<string>, DocumentStatus>> roots = {matched_words, documents_.at(document_id).status };
+
 		return  rots_;
 	}
 
@@ -191,7 +188,6 @@ public:
 	}
 
 private:
-
 	static bool IsValidWord(const string& word) {
 		// A valid word must not contain special characters
 		return none_of(word.begin(), word.end(), [](char c) {
@@ -211,6 +207,7 @@ private:
 	}
 
 	vector<string> SplitIntoWordsNoStop(const string& text) const {
+		if (!IsValidWord(text)) throw invalid_argument("special symbols in document"s);
 		vector<string> words;
 		for (const string& word : SplitIntoWords(text)) {
 			if (!IsStopWord(word)) {
@@ -235,20 +232,21 @@ private:
 		string data;
 		bool is_minus;
 		bool is_stop;
-		bool is_processing; // true если надо обрабатывать  false если не надо
+		// bool is_processing; // true если надо обрабатывать  false если не надо
 	};
 
 	QueryWord ParseQueryWord(string text) const {
+		if (!IsValidWord(text)) throw invalid_argument("special symbol in raw_query"s);
 		bool is_minus = false;
-		if (text.empty()) return { text, false, false, false }; // пустой запрос не надо обрабатывать
+		if (text.empty()) return { "", false, false }; // пустой запрос не надо обрабатывать
 		if (text[0] == '-') {
 			is_minus = true;
-			if (text[1] == '-') return { text, false, false, false }; // два минуса - ошибка 
+			if (text[1] == '-') return { "", false, false }; // два минуса - ошибка 
 			text = text.substr(1);
-			if (text.empty()) return { text, false, false, false };
-			return { text, is_minus, false, true }; // это минус слово 
+			if (text.empty()) return { "", false, false };
+			return { text, is_minus, false }; // это минус слово 
 		}
-		return { text, is_minus, IsStopWord(text), true };
+		return { text, is_minus, IsStopWord(text) };
 	}
 
 	struct Query {
@@ -256,13 +254,11 @@ private:
 		set<string> minus_words;
 	};
 
-	[[nodiscard]] bool ParseQuery(const string& text, Query& query) const {
-
-		if (!IsValidWord(text)) return false;
+	bool ParseQuery(const string& text, Query& query) const {
 
 		for (const string& word : SplitIntoWords(text)) {
 			const QueryWord query_word = ParseQueryWord(word);
-			if (!query_word.is_processing) return false;
+			if (query_word.data.empty()) return false;
 
 			if (!query_word.is_stop) {
 				if (query_word.is_minus) {
