@@ -114,7 +114,8 @@ public:
 	vector<Document> FindTopDocuments(const string& raw_query,
 		DocumentPredicate document_predicate) const {
 		Query query;
-		if (!ParseQuery(raw_query, query)) throw invalid_argument("accordance in query"s);
+		ParseQuery(raw_query, query);
+		//throw invalid_argument("accordance in query"s);
 
 		vector<Document> matched_documents = FindAllDocuments(query, document_predicate);
 
@@ -154,7 +155,7 @@ public:
 
 		Query query;
 
-		if (!ParseQuery(raw_query, query)) throw invalid_argument("accordance in raw_query"s);
+		ParseQuery(raw_query, query);// throw invalid_argument("accordance in raw_query"s);
 		vector<string> matched_words;
 
 		for (const string& word : query.plus_words) {
@@ -232,18 +233,17 @@ private:
 		string data;
 		bool is_minus;
 		bool is_stop;
-		// bool is_processing; // true если надо обрабатывать  false если не надо
 	};
 
 	QueryWord ParseQueryWord(string text) const {
 		if (!IsValidWord(text)) throw invalid_argument("special symbol in raw_query"s);
 		bool is_minus = false;
-		if (text.empty()) return { "", false, false }; // пустой запрос не надо обрабатывать
+		if (text.empty()) throw invalid_argument("error in text"); // пустой запрос не надо обрабатывать
 		if (text[0] == '-') {
 			is_minus = true;
-			if (text[1] == '-') return { "", false, false }; // два минуса - ошибка 
+			if (text[1] == '-') throw invalid_argument("error in second minus");  // два минуса - ошибка 
 			text = text.substr(1);
-			if (text.empty()) return { "", false, false };
+			if (text.empty()) throw invalid_argument("error in rext");
 			return { text, is_minus, false }; // это минус слово 
 		}
 		return { text, is_minus, IsStopWord(text) };
@@ -254,11 +254,10 @@ private:
 		set<string> minus_words;
 	};
 
-	bool ParseQuery(const string& text, Query& query) const {
+	Query ParseQuery(const string& text, Query& query) const {
 
 		for (const string& word : SplitIntoWords(text)) {
 			const QueryWord query_word = ParseQueryWord(word);
-			if (query_word.data.empty()) return false;
 
 			if (!query_word.is_stop) {
 				if (query_word.is_minus) {
@@ -269,7 +268,7 @@ private:
 				}
 			}
 		}
-		return true;
+		return query;
 	}
 
 	// Existence required
