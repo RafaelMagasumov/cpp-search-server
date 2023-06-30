@@ -4,14 +4,14 @@
 
 
 int ReadLineWithNumber() {
-    int result;
-    cin >> result;
-    ReadLine();
-    return result;
+	int result;
+	std::cin >> result;
+	ReadLine();
+	return result;
 }
 
-string ReadLine() {
-    string s;
-    getline(cin, s);
-    return s;
+std::string ReadLine() {
+	std::string s;
+	getline(std::cin, s);
+	return s;
 }
