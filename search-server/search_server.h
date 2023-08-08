@@ -32,7 +32,14 @@ public:
 
 	int GetDocumentCount() const;
 
-	int GetDocumentId(int index) const;
+	std::set<int>::iterator begin() const;
+
+	std::set<int>::iterator end() const;
+
+
+	const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
+
+	void RemoveDocument(int documents_id);
 
 	std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query,
 		int document_id) const;
@@ -44,12 +51,13 @@ private:
 		DocumentStatus status;
 	};
 
-
+	std::map<int, std::map<std::string, double>> get_document_freqs; // {id, {document, freqs}}.
+	std::map<std::string, std::map<int, double>> word_to_document_freqs_; // {document, {id, freqs}}.
 
 	const std::set<std::string> stop_words_;
-	std::map<std::string, std::map<int, double>> word_to_document_freqs_;
-	std::map<int, DocumentData> documents_;
-	std::vector<int> document_ids_;
+
+	std::map<int, DocumentData> documents_; // хранит id rating и status
+	std::set<int> document_ids_; // хранит id документов
 
 	bool IsStopWord(const std::string& word) const;
 
@@ -94,7 +102,7 @@ std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_quer
 
 	sort(matched_documents.begin(), matched_documents.end(),
 		[](const Document& lhs, const Document& rhs) {
-			if (abs(lhs.relevance - rhs.relevance) < MAX_RELEVANCE_DIFFERENCE) {
+			if (std::abs(lhs.relevance - rhs.relevance) < MAX_RELEVANCE_DIFFERENCE) {
 				return lhs.rating > rhs.rating;
 			}
 			else {
