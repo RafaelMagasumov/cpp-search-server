@@ -8,13 +8,9 @@
 using namespace std;
 
 template <typename T, typename U>
-
 void AssertEqualImpl(const T& t, const U& u, const string& t_str, const string& u_str, const string& file,
-
 	const string& func, unsigned line, const string& hint) {
-
 	if (t != u) {
-
 		cout << boolalpha;
 
 		cout << file << "("s << line << "): "s << func << ": "s;
@@ -32,50 +28,33 @@ void AssertEqualImpl(const T& t, const U& u, const string& t_str, const string& 
 		cout << endl;
 
 		abort();
-
 	}
-
 }
 
-
-
 #define ASSERT_EQUAL(a, b)  AssertEqualImpl((a), (b), #a, #b, __FILE__, __FUNCTION__, __LINE__, ""s) 
-
 #define ASSERT_EQUAL_HINT(a, b, hint) AssertEqualImpl((a), (b), #a, #b, __FILE__, __FUNCTION__, __LINE__, (hint)) 
 
 
-
 void AssertImpl(bool value, const string& expr_str, const string& file, const string& func, unsigned line,
-
 	const string& hint) {
 
 	if (!value) {
-
 		cout << file << "("s << line << "): "s << func << ": "s;
 
 		cout << "ASSERT("s << expr_str << ") failed."s;
 
 		if (!hint.empty()) {
-
 			cout << " Hint: "s << hint;
-
 		}
 
 		cout << endl;
 
 		abort();
-
 	}
-
 }
 
 #define ASSERT(expr) AssertImpl(!!(expr), #expr, __FILE__, __FUNCTION__, __LINE__, ""s) 
-
-
-
 #define ASSERT_HINT(expr, hint) AssertImpl(!!(expr), #expr, __FILE__, __FUNCTION__, __LINE__, (hint)) 
-
-
 
 void TestFindTopDocument() {
 	const int document_id = 5;
@@ -91,7 +70,6 @@ void TestFindTopDocument() {
 	const vector<int> ratings_second = { 2, 3, 5 };
 
 	{
-
 		SearchServer server;
 
 		server.AddDocument(document_id, content, DocumentStatus::ACTUAL, ratings);
@@ -105,7 +83,6 @@ void TestFindTopDocument() {
 		ASSERT_EQUAL_HINT(test.size(), 1, "FindTopDocument must be must  \"ACTUAL\" ");
 
 		ASSERT_HINT(test_second.empty(), "FindTopDocument doens't must be must  \"BANNED\" ");
-
 	}
 
 }
@@ -125,7 +102,6 @@ void TestFindTopDocument_Par() {
 	const vector<int> ratings_second = { 2, 3, 5 };
 
 	{
-
 		SearchServer server;
 
 		server.AddDocument(document_id, content, DocumentStatus::ACTUAL, ratings);
@@ -139,7 +115,6 @@ void TestFindTopDocument_Par() {
 		ASSERT_EQUAL_HINT(test.size(), 1, "FindTopDocument must be must  \"ACTUAL\" ");
 
 		ASSERT_HINT(test_second.empty(), "FindTopDocument doens't must be must  \"BANNED\" ");
-
 	}
 
 }
@@ -159,7 +134,6 @@ void TestFindTopDocument_Seq() {
 	const vector<int> ratings_second = { 2, 3, 5 };
 
 	{
-
 		SearchServer server;
 
 		server.AddDocument(document_id, content, DocumentStatus::ACTUAL, ratings);
@@ -173,7 +147,6 @@ void TestFindTopDocument_Seq() {
 		ASSERT_EQUAL_HINT(test.size(), 1, "FindTopDocument must be must  \"ACTUAL\" ");
 
 		ASSERT_HINT(test_second.empty(), "FindTopDocument doens't must be must  \"BANNED\" ");
-
 	}
 
 }
@@ -187,7 +160,6 @@ void TestExcludeStopWordsFromAddedDocumentContent() {
 	const vector<int> ratings = { 1, 2, 3 };
 
 	{
-
 		SearchServer server;
 
 		server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
@@ -215,7 +187,6 @@ void TestToSplitIntoWords() {
 
 }
 
-
 void TestMinusWord() {
 
 	const int document_id = 1;
@@ -231,7 +202,6 @@ void TestMinusWord() {
 	const vector<int> rating_sec = { 1, 2, 5 };
 
 	{
-
 		SearchServer server;
 
 		server.AddDocument(document_id, content, DocumentStatus::ACTUAL, rating);
@@ -243,7 +213,6 @@ void TestMinusWord() {
 		ASSERT_EQUAL(server.FindTopDocuments("кот").size(), 2);
 
 		ASSERT(server.FindTopDocuments("кот -модный"s).empty());
-
 	}
 
 }
@@ -269,7 +238,6 @@ void TestComputerating() {
 	const vector<int> rating_third = { 1, 8, 10, -6 }; //rating 3 
 
 	{
-
 		SearchServer server;
 
 		server.AddDocument(id_document_first, content_first, DocumentStatus::ACTUAL, rating_first);
@@ -291,7 +259,6 @@ void TestComputerating() {
 		ASSERT_EQUAL(doc_second.rating, (2 + 10 + (-5) + 3) / 4);
 
 		ASSERT_EQUAL(doc_third.rating, (1 + (-5) + 8) / 3);
-
 	}
 
 }
@@ -438,8 +405,6 @@ void TestSearchStatus() { // поиск документов имеющих за
 
 	ASSERT_EQUAL(document_forth.size(), 1);
 
-
-
 	ASSERT_EQUAL(document_[0].id, 0);  // соответсвие документво по айди показывает что нашелся именно тот документ 
 
 	ASSERT_EQUAL(document_second[0].id, 1);
@@ -452,53 +417,29 @@ void TestSearchStatus() { // поиск документов имеющих за
 
 
 void FilterResultPlusPredicat() { // фильтр резултатов поиска с использованием предиката задаваемого пользователем 
-
 	SearchServer server;
-
 	const int id_document_first = 0;
-
 	const int id_document_second = 1;
-
 	const int id_document_third = 2;
-
 	const int id_document_forth = 3;
-
 	const string& content_first = "кошка бежит в будке"s;
-
 	const string& content_second = "кошка бежит домой"s;
-
 	const string& content_third = "кошка на дереве"s;
-
 	const string& content_forth = "кошка бежит от собаки";
-
 	const vector<int> rating_first = { 1, -5,8 }; // rating 1; 
-
 	const vector<int> rating_second = { 2, 10, -5, 3 }; // rating 2  
-
 	const vector<int> rating_third = { 1, 8, 10, -6 }; //rating 3 
-
 	const vector<int> rating_forth = { 9 };
-
 	server.AddDocument(id_document_first, content_first, DocumentStatus::ACTUAL, rating_first);
-
 	server.AddDocument(id_document_second, content_second, DocumentStatus::ACTUAL, rating_second);
-
 	server.AddDocument(id_document_third, content_third, DocumentStatus::ACTUAL, rating_third);
-
 	server.AddDocument(id_document_forth, content_forth, DocumentStatus::ACTUAL, rating_forth);
-
 	const auto document_ = server.FindTopDocuments("кошка"s, [](int document_id, DocumentStatus status, int rating) { return rating > 2; }); // например рейтинг больше двух 
-
 	ASSERT_EQUAL(document_.size(), 2);
-
 	const auto document_first_test = server.FindTopDocuments("кошка"s, [](int document_id, DocumentStatus status, int rating) { return document_id < 2; });
-
 	ASSERT_EQUAL(document_first_test.size(), 2); // id меньше 2 
-
 	const auto document_second_test = server.FindTopDocuments("кошка"s, [](int document_id, DocumentStatus status, int rating) {return status == DocumentStatus::ACTUAL;});
-
 	ASSERT_EQUAL(document_second_test.size(), 4);
-
 }
 
 void PrintDocument(const Document& document) {
@@ -507,7 +448,6 @@ void PrintDocument(const Document& document) {
 		<< "relevance = "s << document.relevance << ", "s
 		<< "rating = "s << document.rating << " }"s << endl;
 }
-
 
 int main() {
 	// TEST
@@ -554,7 +494,6 @@ int main() {
 		PrintDocument(document);
 	}
 	return 0;
-
 }
 
 
